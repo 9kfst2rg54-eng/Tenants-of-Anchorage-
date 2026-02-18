@@ -112,5 +112,31 @@
     }
     window.onload = render;
 </script>
+<script>
+  // This map "brain" tells the app where to look for each neighborhood
+  const zipCoords = {
+    "99501": [61.2116, -149.8761], // Downtown
+    "99502": [61.1661, -149.9600], // Sand Lake
+    "99503": [61.1900, -149.8938], // Midtown
+    "99504": [61.2037, -149.7447], // Muldoon
+    "99507": [61.1535, -149.8289], // Abbott Loop
+    "99508": [61.2060, -149.8101], // Mountain View
+    "99515": [61.1194, -149.8974], // Bayshore
+    "99516": [61.1054, -149.7800], // Hillside
+    "99517": [61.1901, -149.9361], // Spenard
+    "99518": [61.1549, -149.8866], // Taku
+    "99567": [61.3200, -149.4700], // Chugiak
+    "99577": [61.3200, -149.5700], // Eagle River
+    "99587": [60.9400, -149.1600]  // Girdwood
+  };
+
+  // This part makes the map "fly" to the neighborhood when clicked
+  document.getElementById('zip-code').addEventListener('change', function() {
+    const coords = zipCoords[this.value];
+    if (coords) {
+      map.flyTo(coords, 14); // 14 is the zoom level—nice and close!
+    }
+  }
+</script>
 </body>
 </html>
