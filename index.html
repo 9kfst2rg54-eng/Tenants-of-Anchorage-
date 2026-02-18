@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anchorage Tenants United</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ADD8E6">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root { --cream: #F5F5DC; --light-blue: #ADD8E6; --dark-blue: #4A90E2; --text: #333; }
+        body { font-family: 'Roboto', sans-serif; background-color: var(--cream); color: var(--text); margin: 0; padding: 0; }
+        header { background-color: var(--light-blue); padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .container { width: 90%; max-width: 1000px; margin: 2rem auto; }
+        #map { height: 350px; border-radius: 8px; margin-bottom: 2rem; border: 2px solid var(--light-blue); z-index: 1; }
+        .post-card { background: white; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        input, textarea, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: var(--dark-blue); color: white; border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
+        #disclaimer-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+        .modal-content { background: white; padding: 2rem; border-radius: 8px; max-width: 500px; text-align: center; margin: 20px; }
+        nav a { text-decoration: none; color: var(--text); margin-left: 15px; font-weight: bold; font-size: 0.9rem; }
+        footer { text-align: center; padding: 2rem; font-size: 0.7rem; color: #666; }
+    </style>
+</head>
+<body>
+
+<div id="disclaimer-modal">
+    <div class="modal-content">
+        <h2>Important Disclaimer</h2>
+        <p>This platform is for information sharing and community advocacy. It does not provide legal advice. By using this app, you agree to post truthfully and respect the anonymity of others.</p>
+        <button onclick="closeDisclaimer()">I Agree</button>
+    </div>
+</div>
+
+<header>
+    <h2 style="margin:0; font-size: 1.2rem;">Anchorage Tenants United</h2>
+    <nav>
+        <a href="#" onclick="showSection('feed')">Forum</a>
+        <a href="#" onclick="showSection('donate')">Donate</a>
+    </nav>
+</header>
+
+<div class="container">
+    <div id="map"></div>
+
+    <section id="feed">
+        <div class="post-card">
+            <h3>Share a Grievance</h3>
+            <select id="zip-code">
+                <option value="99501">99501 (Downtown)</option>
+                <option value="99504">99504 (East Anchorage)</option>
+                <option value="99507">99507 (South Anchorage)</option>
+                <option value="99508">99508 (Mountain View)</option>
+            </select>
+            <textarea id="post-content" rows="3" placeholder="What's happening? (No names please)"></textarea>
+            <button onclick="submitPost()">Post Anonymously</button>
+        </div>
+        <div id="forum-feed"></div>
+    </section>
+
+    <section id="donate" style="display:none;">
+        <div class="post-card">
+            <h2>Support Us</h2>
+            <p>We are 100% free. Voluntary donations help us print flyers for the community.</p>
+            <button onclick="alert('Link your Stripe here!')">Donate via Stripe</button>
+        </div>
+    </section>
+</div>
+
+<footer>
+    <p>Anchorage Tenants United • 2026 • 99501-99524</p>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // PWA Service Worker Registration
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js');
+    }
+
+    const map = L.map('map').setView([61.2176, -149.8997], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+    function closeDisclaimer() { document.getElementById('disclaimer-modal').style.display = 'none'; }
+    
+    function showSection(id) {
+        document.getElementById('feed').style.display = id === 'feed' ? 'block' : 'none';
+        document.getElementById('donate').style.display = id === 'donate' ? 'block' : 'none';
+    }
+
+    function submitPost() {
+        const content = document.getElementById('post-content').value;
+        const zip = document.getElementById('zip-code').value;
+        if(!content) return;
+        const post = { content, zip, date: new Date().toLocaleDateString() };
+        let posts = JSON.parse(localStorage.getItem('at_posts') || '[]');
+        posts.unshift(post);
+        localStorage.setItem('at_posts', JSON.stringify(posts));
+        render();
+        document.getElementById('post-content').value = "";
+    }
+
+    function render() {
+        const feed = document.getElementById('forum-feed');
+        const posts = JSON.parse(localStorage.getItem('at_posts') || '[]');
+        feed.innerHTML = "";
+        posts.forEach(p => {
+            feed.innerHTML += `<div class="post-card"><small>ZIP ${p.zip} • ${p.date}</small><p>${p.content}</p></div>`;
+        });
+    }
+    window.onload = render;
+</script>
+</body>
+</html>
